@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI生活管家 · LifeMate</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">🌟</span>
+          <span class="logo-text">LifeMate</span>
+        </div>
+        <p class="logo-sub">AI生活管家</p>
+      </div>
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="dashboard">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">首页概览</span>
+        </button>
+        <button class="nav-item" data-tab="schedule">
+          <span class="nav-icon">📅</span>
+          <span class="nav-label">智能日程</span>
+        </button>
+        <button class="nav-item" data-tab="habits">
+          <span class="nav-icon">✅</span>
+          <span class="nav-label">习惯追踪</span>
+        </button>
+        <button class="nav-item" data-tab="finance">
+          <span class="nav-icon">💰</span>
+          <span class="nav-label">简易记账</span>
+        </button>
+        <button class="nav-item" data-tab="report">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">AI周报</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle" title="切换主题">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-label">暗色模式</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 移动端汉堡菜单 -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="菜单">☰</button>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <!-- Dashboard 首页 -->
+      <section class="tab-content active" id="tab-dashboard">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">早上好 👋</h1>
+            <p class="page-subtitle" id="dashboardDate"></p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-primary btn-sm" onclick="switchTab('schedule')">+ 添加日程</button>
+          </div>
+        </header>
+
+        <!-- 今日概览卡片 -->
+        <div class="overview-cards">
+          <div class="overview-card card-schedule">
+            <div class="card-icon">📅</div>
+            <div class="card-info">
+              <span class="card-value" id="todayEventCount">0</span>
+              <span class="card-label">今日日程</span>
+            </div>
+            <button class="card-action" onclick="switchTab('schedule')">查看 →</button>
+          </div>
+          <div class="overview-card card-habits">
+            <div class="card-icon">✅</div>
+            <div class="card-info">
+              <span class="card-value" id="todayHabitDone">0/<span id="todayHabitTotal">0</span></span>
+              <span class="card-label">习惯打卡</span>
+            </div>
+            <button class="card-action" onclick="switchTab('habits')">打卡 →</button>
+          </div>
+          <div class="overview-card card-finance">
+            <div class="card-icon">💰</div>
+            <div class="card-info">
+              <span class="card-value" id="monthBalance">¥0</span>
+              <span class="card-label">本月结余</span>
+            </div>
+            <button class="card-action" onclick="switchTab('finance')">记账 →</button>
+          </div>
+        </div>
+
+        <!-- 今日日程速览 -->
+        <div class="dashboard-section">
+          <h2 class="section-title">📋 今日日程</h2>
+          <div class="today-events" id="todayEvents">
+            <div class="empty-state">
+              <span class="empty-icon">🎉</span>
+              <p>今天没有安排，享受自由时光！</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 习惯速览 -->
+        <div class="dashboard-section">
+          <h2 class="section-title">🔥 习惯进度</h2>
+          <div class="habit-mini-list" id="habitMiniList"></div>
+        </div>
+
+        <!-- 快捷操作 -->
+        <div class="quick-actions">
+          <button class="quick-btn" onclick="switchTab('schedule'); setTimeout(() => openEventModal(), 300)">
+            <span>📅</span> 新建日程
+          </button>
+          <button class="quick-btn" onclick="switchTab('finance'); setTimeout(() => openTransactionModal(), 300)">
+            <span>💰</span> 记一笔
+          </button>
+          <button class="quick-btn" onclick="switchTab('habits'); setTimeout(() => openHabitModal(), 300)">
+            <span>✅</span> 添加习惯
+          </button>
+        </div>
+      </section>
+
+      <!-- 日程管理 -->
+      <section class="tab-content" id="tab-schedule">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">智能日程</h1>
+            <p class="page-subtitle">管理你的每一天</p>
+          </div>
+          <div class="header-actions">
+            <div class="view-switcher">
+              <button class="view-btn active" data-view="month">月</button>
+              <button class="view-btn" data-view="week">周</button>
+              <button class="view-btn" data-view="day">日</button>
+            </div>
+            <button class="btn btn-primary" onclick="openEventModal()">+ 新建事件</button>
+          </div>
+        </header>
+
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <button class="cal-nav-btn" id="calPrev">◀</button>
+            <h2 class="cal-title" id="calTitle"></h2>
+            <button class="cal-nav-btn" id="calNext">▶</button>
+            <button class="btn btn-outline btn-sm" id="calToday">今天</button>
+          </div>
+          <div class="calendar-grid" id="calendarGrid">
+            <div class="cal-weekday">一</div><div class="cal-weekday">二</div><div class="cal-weekday">三</div>
+            <div class="cal-weekday">四</div><div class="cal-weekday">五</div><div class="cal-weekday">六</div><div class="cal-weekday">日</div>
+          </div>
+          <div class="day-events-panel" id="dayEventsPanel">
+            <div class="empty-state">
+              <span class="empty-icon">📅</span>
+              <p>点击日历上的日期查看当天事件</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 习惯追踪 -->
+      <section class="tab-content" id="tab-habits">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">习惯追踪</h1>
+            <p class="page-subtitle">坚持就是胜利 ✊</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openHabitModal()">+ 新建习惯</button>
+          </div>
+        </header>
+
+        <div class="habits-grid" id="habitsGrid">
+          <div class="empty-state">
+            <span class="empty-icon">🌱</span>
+            <p>还没有习惯，点击上方按钮添加吧！</p>
+          </div>
+        </div>
+
+        <!-- 习惯热力图 -->
+        <div class="dashboard-section" id="habitHeatmapSection" style="display:none;">
+          <h2 class="section-title">📊 本月打卡热力图</h2>
+          <div class="heatmap-container" id="habitHeatmap"></div>
+        </div>
+      </section>
+
+      <!-- 简易记账 -->
+      <section class="tab-content" id="tab-finance">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">简易记账</h1>
+            <p class="page-subtitle">每一笔都清晰明了</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openTransactionModal()">+ 记一笔</button>
+          </div>
+        </header>
+
+        <!-- 月度统计 -->
+        <div class="finance-summary">
+          <div class="summary-card income">
+            <span class="summary-label">本月收入</span>
+            <span class="summary-value" id="monthIncome">¥0.00</span>
+          </div>
+          <div class="summary-card expense">
+            <span class="summary-label">本月支出</span>
+            <span class="summary-value" id="monthExpense">¥0.00</span>
+          </div>
+          <div class="summary-card balance">
+            <span class="summary-label">本月结余</span>
+            <span class="summary-value" id="monthBalance2">¥0.00</span>
+          </div>
+        </div>
+
+        <!-- 分类筛选 -->
+        <div class="finance-filters">
+          <button class="filter-chip active" data-category="all">全部</button>
+          <button class="filter-chip" data-category="餐饮">🍜 餐饮</button>
+          <button class="filter-chip" data-category="交通">🚗 交通</button>
+          <button class="filter-chip" data-category="购物">🛍️ 购物</button>
+          <button class="filter-chip" data-category="娱乐">🎮 娱乐</button>
+          <button class="filter-chip" data-category="住房">🏠 住房</button>
+          <button class="filter-chip" data-category="医疗">💊 医疗</button>
+          <button class="filter-chip" data-category="教育">📚 教育</button>
+          <button class="filter-chip" data-category="收入">💵 收入</button>
+          <button class="filter-chip" data-category="其他">📦 其他</button>
+        </div>
+
+        <!-- 图表 -->
+        <div class="chart-container">
+          <canvas id="financeChart" height="220"></canvas>
+        </div>
+
+        <!-- 交易列表 -->
+        <div class="transaction-list" id="transactionList">
+          <div class="empty-state">
+            <span class="empty-icon">💳</span>
+            <p>还没有记录，点击上方按钮开始记账吧！</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI 周报 -->
+      <section class="tab-content" id="tab-report">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">AI 智能周报</h1>
+            <p class="page-subtitle" id="reportDateRange"></p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-outline" onclick="generateReport()">🔄 刷新报告</button>
+          </div>
+        </header>
+
+        <!-- 综合评分 -->
+        <div class="score-card">
+          <div class="score-circle-container">
+            <svg class="score-circle" viewBox="0 0 120 120">
+              <circle class="score-bg" cx="60" cy="60" r="52" fill="none" stroke-width="8"/>
+              <circle class="score-fill" id="scoreFill" cx="60" cy="60" r="52" fill="none" stroke-width="8" stroke-linecap="round"/>
+            </svg>
+            <div class="score-text">
+              <span class="score-number" id="scoreNumber">0</span>
+              <span class="score-unit">分</span>
+            </div>
+          </div>
+          <div class="score-details">
+            <div class="score-item"><span>📅 日程完成率</span><span id="scoreSchedule">--</span></div>
+            <div class="score-item"><span>✅ 习惯坚持率</span><span id="scoreHabit">--</span></div>
+            <div class="score-item"><span>💰 预算控制</span><span id="scoreFinance">--</span></div>
+          </div>
+        </div>
+
+        <!-- AI 总结 -->
+        <div class="ai-summary-card">
+          <div class="ai-summary-header">
+            <span class="ai-icon">🤖</span>
+            <h2>AI 智能总结</h2>
+          </div>
+          <div class="ai-summary-body" id="aiSummary">
+            <p class="text-muted">点击上方刷新按钮生成周报...</p>
+          </div>
+        </div>
+
+        <!-- 趋势图 -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3>📊 本周习惯趋势</h3>
+            <canvas id="habitTrendChart" height="200"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>💰 本周支出趋势</h3>
+            <canvas id="financeTrendChart" height="200"></canvas>
+          </div>
+        </div>
+
+        <!-- 本周亮点 -->
+        <div class="highlights-card">
+          <h3>🌟 本周亮点</h3>
+          <div class="highlights-list" id="highlightsList">
+            <p class="text-muted">等待数据...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 日程事件弹窗 -->
+  <div class="modal-overlay" id="eventModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="eventModalTitle">新建事件</h3>
+        <button class="modal-close" onclick="closeEventModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>事件标题</label>
+          <input type="text" id="eventTitle" placeholder="例如：团队周会" maxlength="50">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>日期</label>
+            <input type="date" id="eventDate">
+          </div>
+          <div class="form-group">
+            <label>时间</label>
+            <input type="time" id="eventTime">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>类型</label>
+            <select id="eventType">
+              <option value="工作">💼 工作</option>
+              <option value="个人">👤 个人</option>
+              <option value="健康">💪 健康</option>
+              <option value="社交">🎉 社交</option>
+              <option value="其他">📌 其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>颜色</label>
+            <div class="color-picker" id="eventColorPicker">
+              <span class="color-dot active" data-color="#FF6B6B" style="background:#FF6B6B"></span>
+              <span class="color-dot" data-color="#4ECDC4" style="background:#4ECDC4"></span>
+              <span class="color-dot" data-color="#FFD93D" style="background:#FFD93D"></span>
+              <span class="color-dot" data-color="#6C5CE7" style="background:#6C5CE7"></span>
+              <span class="color-dot" data-color="#A8E6CF" style="background:#A8E6CF"></span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea id="eventNote" rows="2" placeholder="添加备注..." maxlength="200"></textarea>
+        </div>
+        <input type="hidden" id="eventId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="eventDeleteBtn" style="display:none" onclick="deleteEvent()">删除</button>
+        <button class="btn btn-outline" onclick="closeEventModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveEvent()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 习惯弹窗 -->
+  <div class="modal-overlay" id="habitModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="habitModalTitle">新建习惯</h3>
+        <button class="modal-close" onclick="closeHabitModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>习惯名称</label>
+          <input type="text" id="habitName" placeholder="例如：每日阅读" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>图标</label>
+          <div class="emoji-picker" id="emojiPicker">
+            <span class="emoji-option active" data-emoji="📚">📚</span>
+            <span class="emoji-option" data-emoji="🏃">🏃</span>
+            <span class="emoji-option" data-emoji="🧘">🧘</span>
+            <span class="emoji-option" data-emoji="💧">💧</span>
+            <span class="emoji-option" data-emoji="✍️">✍️</span>
+            <span class="emoji-option" data-emoji="🎵">🎵</span>
+            <span class="emoji-option" data-emoji="🌿">🌿</span>
+            <span class="emoji-option" data-emoji="💤">💤</span>
+            <span class="emoji-option" data-emoji="🍎">🍎</span>
+            <span class="emoji-option" data-emoji="📝">📝</span>
+            <span class="emoji-option" data-emoji="🎯">🎯</span>
+            <span class="emoji-option" data-emoji="💡">💡</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>每周目标天数</label>
+          <div class="goal-selector">
+            <button class="goal-btn" data-goal="3">3天</button>
+            <button class="goal-btn active" data-goal="5">5天</button>
+            <button class="goal-btn" data-goal="7">7天</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>颜色主题</label>
+          <div class="color-picker" id="habitColorPicker">
+            <span class="color-dot active" data-color="#FF6B6B" style="background:#FF6B6B"></span>
+            <span class="color-dot" data-color="#4ECDC4" style="background:#4ECDC4"></span>
+            <span class="color-dot" data-color="#FFD93D" style="background:#FFD93D"></span>
+            <span class="color-dot" data-color="#6C5CE7" style="background:#6C5CE7"></span>
+            <span class="color-dot" data-color="#A8E6CF" style="background:#A8E6CF"></span>
+          </div>
+        </div>
+        <input type="hidden" id="habitId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="habitDeleteBtn" style="display:none" onclick="deleteHabit()">删除</button>
+        <button class="btn btn-outline" onclick="closeHabitModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveHabit()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 记账弹窗 -->
+  <div class="modal-overlay" id="transactionModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="transactionModalTitle">记一笔</h3>
+        <button class="modal-close" onclick="closeTransactionModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="transaction-type-switch">
+          <button class="type-btn active" data-type="expense">💸 支出</button>
+          <button class="type-btn" data-type="income">💰 收入</button>
+        </div>
+        <div class="form-group">
+          <label>金额</label>
+          <div class="amount-input-wrapper">
+            <span class="currency-symbol">¥</span>
+            <input type="number" id="transactionAmount" placeholder="0.00" step="0.01" min="0.01">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>分类</label>
+          <div class="category-grid" id="categoryGrid">
+            <button class="cat-chip active" data-cat="餐饮">🍜 餐饮</button>
+            <button class="cat-chip" data-cat="交通">🚗 交通</button>
+            <button class="cat-chip" data-cat="购物">🛍️ 购物</button>
+            <button class="cat-chip" data-cat="娱乐">🎮 娱乐</button>
+            <button class="cat-chip" data-cat="住房">🏠 住房</button>
+            <button class="cat-chip" data-cat="医疗">💊 医疗</button>
+            <button class="cat-chip" data-cat="教育">📚 教育</button>
+            <button class="cat-chip" data-cat="其他">📦 其他</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>日期</label>
+            <input type="date" id="transactionDate">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <input type="text" id="transactionNote" placeholder="添加备注..." maxlength="100">
+        </div>
+        <input type="hidden" id="transactionId">
+        <input type="hidden" id="transactionType" value="expense">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="transactionDeleteBtn" style="display:none" onclick="deleteTransaction()">删除</button>
+        <button class="btn btn-outline" onclick="closeTransactionModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveTransaction()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
